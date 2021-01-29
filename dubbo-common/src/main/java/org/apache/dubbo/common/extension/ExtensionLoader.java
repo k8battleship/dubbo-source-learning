@@ -83,29 +83,51 @@ public class ExtensionLoader<T> {
 
     private static final Logger logger = LoggerFactory.getLogger(ExtensionLoader.class);
 
+    /* =======================  静态属性  ======================== */
     private static final Pattern NAME_SEPARATOR = Pattern.compile("\\s*[,]+\\s*");
-
+    // 拓展加载器集合
     private static final ConcurrentMap<Class<?>, ExtensionLoader<?>> EXTENSION_LOADERS = new ConcurrentHashMap<>(64);
-
+    // 拓展实现类集合
     private static final ConcurrentMap<Class<?>, Object> EXTENSION_INSTANCES = new ConcurrentHashMap<>(64);
 
+    /* =======================  对象属性  ======================== */
+    // 拓展接口。例如：Protocol.class
     private final Class<?> type;
-
+    // 对象工厂。用于调用对象的方法，向拓展对象中注入依赖属性。例如：Protocol.protocol()
     private final ExtensionFactory objectFactory;
-
+    // 缓存拓展名与拓展类的映射。通过loadExtensionClasses进行加载
     private final ConcurrentMap<Class<?>, String> cachedNames = new ConcurrentHashMap<>();
-
+    // 缓存拓展类实现集合。
+    /**
+     * 不包含以下两种情况：
+     *      1. 自适应拓展实现类。例如：AdaptiveExtensionFactory
+     *      2. 带唯一参数为拓展接口的构造方法的实现类，或者说拓展Wrapper实现类。例如：ProtocolFilterWrapper。拓展Wrapper实现类将被添加到 cachedWrapperClass 集合中。
+     *  通过 loadExtensionClasses进行加载
+     */
     private final Holder<Map<String, Class<?>>> cachedClasses = new Holder<>();
-
+    // 拓展名与 @Activate 的映射。 例如：AccessLogFilter
+    // 用于 getActivateExtension(URL,String)
     private final Map<String, Object> cachedActivates = new ConcurrentHashMap<>();
+    // 缓存的拓展对象集合。例如：Protocol。
+    //      key：dubbo   value: DubboProtocol
+    //      key：injvm   value: InjvmProtocol
+    // 通过 loadExtensionClasses 进行加载
     private final ConcurrentMap<String, Holder<Object>> cachedInstances = new ConcurrentHashMap<>();
+    // 缓存自适应(@Adaptive)拓展对象
     private final Holder<Object> cachedAdaptiveInstance = new Holder<>();
+    // 缓存自适应拓展对象的类
+    // 通过 getAdaptiveExtensionClass() 进行加载
     private volatile Class<?> cachedAdaptiveClass = null;
+    // 缓存的默认拓展名
+    // 通过 @SPI 注解获得
     private String cachedDefaultName;
+    // 创建 cacheAdaptiveInstance 时发生的异常
     private volatile Throwable createAdaptiveInstanceError;
-
+    // 拓展Wrapper实现类集合
+    // 带有唯一参数的拓展接口的构造方法的实现类。
+    // 通过 loadExtensionClasses 进行加载
     private Set<Class<?>> cachedWrapperClasses;
-
+    // 缓存 拓展名 与 加载对应拓展类 发生的异常映射
     private Map<String, IllegalStateException> exceptions = new ConcurrentHashMap<>();
 
     private static volatile LoadingStrategy[] strategies = loadLoadingStrategies();
@@ -752,12 +774,15 @@ public class ExtensionLoader<T> {
     }
 
     private Map<String, Class<?>> getExtensionClasses() {
+        // 从缓存中获取拓展类对象
         Map<String, Class<?>> classes = cachedClasses.get();
         if (classes == null) {
             synchronized (cachedClasses) {
                 classes = cachedClasses.get();
                 if (classes == null) {
+                    // 从配置文件中加载拓展实现类
                     classes = loadExtensionClasses();
+                    // 添加到缓存中
                     cachedClasses.set(classes);
                 }
             }
@@ -785,6 +810,7 @@ public class ExtensionLoader<T> {
      * extract and cache default extension name if exists
      */
     private void cacheDefaultExtensionName() {
+        // 通过 @SPI 注解获取默认的拓展实现类名
         final SPI defaultAnnotation = type.getAnnotation(SPI.class);
         if (defaultAnnotation == null) {
             return;

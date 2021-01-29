@@ -59,7 +59,7 @@ import java.lang.annotation.Target;
  *
  * @see EnableDubboConfigBinding
  * @see DubboConfigConfiguration
- * @see DubboConfigConfigurationRegistrar
+ * @see DubboConfigConfigurationRegistrar   表明使用DubboConfigConfigurationRegistrar类进行导入
  * @since 2.5.8
  */
 @Target({ElementType.TYPE})

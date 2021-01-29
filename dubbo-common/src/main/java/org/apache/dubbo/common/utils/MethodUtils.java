@@ -65,6 +65,7 @@ public interface MethodUtils {
      * @param method the method to check
      * @return whether the given method is getter method
      */
+    // 获取方法的基本类型和public修饰符修饰的getter方法
     public static boolean isGetter(Method method) {
         String name = method.getName();
         return (name.startsWith("get") || name.startsWith("is"))

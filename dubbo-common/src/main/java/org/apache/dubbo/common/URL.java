@@ -92,27 +92,39 @@ import static org.apache.dubbo.common.utils.StringUtils.isBlank;
  * @see java.net.URL
  * @see java.net.URI
  */
+
+/**
+ * Dubbo中URL实体类
+ */
 public /*final**/
 class URL implements Serializable {
 
     private static final long serialVersionUID = -1985165475234910535L;
 
+    // 协议
     private final String protocol;
 
+    // 用户名
     private final String username;
 
+    // 密码
     private final String password;
 
     // by default, host to registry
+    // 主机名
     private final String host;
 
     // by default, port to registry
+    // 端口号
     private final int port;
 
+    // 路径(用于标记要使用的服务名)
     private final String path;
 
+    // 参数项
     private final Map<String, String> parameters;
 
+    // 方法参数
     private final Map<String, Map<String, String>> methodParameters;
 
     // ==== cache ====
@@ -1397,6 +1409,13 @@ class URL implements Serializable {
         }
     }
 
+    /**
+     * 生成最终可供消费方调用的URL字符串
+     * @param appendUser
+     * @param appendParameter
+     * @param parameters
+     * @return
+     */
     private String buildString(boolean appendUser, boolean appendParameter, String... parameters) {
         return buildString(appendUser, appendParameter, false, false, parameters);
     }

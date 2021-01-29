@@ -39,6 +39,11 @@ import static org.apache.dubbo.common.constants.CommonConstants.DUBBO;
  *
  * @export
  */
+
+/**
+ * 服务提供方暴露服务配置类
+ * @param <T>
+ */
 public abstract class ServiceConfigBase<T> extends AbstractServiceConfig {
 
     private static final long serialVersionUID = 3033787999037024738L;
@@ -148,6 +153,7 @@ public abstract class ServiceConfigBase<T> extends AbstractServiceConfig {
         return provider;
     }
 
+    // 服务是否暴露
     public boolean shouldExport() {
         Boolean export = getExport();
         // default value is true
@@ -159,6 +165,7 @@ public abstract class ServiceConfigBase<T> extends AbstractServiceConfig {
         return (export == null && provider != null) ? provider.getExport() : export;
     }
 
+    // 延迟暴露
     public boolean shouldDelay() {
         Integer delay = getDelay();
         return delay != null && delay > 0;

@@ -337,6 +337,7 @@ public class ConfigManager extends LifecycleAdapter implements FrameworkExt {
     public void refreshAll() {
         write(() -> {
             // refresh all configs here,
+            // 刷新所有组件
             getApplication().ifPresent(ApplicationConfig::refresh);
             getMonitor().ifPresent(MonitorConfig::refresh);
             getModule().ifPresent(ModuleConfig::refresh);

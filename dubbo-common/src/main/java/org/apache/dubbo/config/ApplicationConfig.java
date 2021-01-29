@@ -52,6 +52,10 @@ import static org.apache.dubbo.config.Constants.TEST_ENVIRONMENT;
  *
  * @export
  */
+
+/**
+ * 应用配置
+ */
 public class ApplicationConfig extends AbstractConfig {
     private static final Logger LOGGER = LoggerFactory.getLogger(ApplicationConfig.class);
 

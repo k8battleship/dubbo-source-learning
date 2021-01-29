@@ -30,6 +30,10 @@ import static org.apache.dubbo.config.Constants.PROTOCOLS_SUFFIX;
  *
  * @export
  */
+
+/**
+ * RPC协议配置
+ */
 public class ProtocolConfig extends AbstractConfig {
 
     private static final long serialVersionUID = 6913423882496634749L;

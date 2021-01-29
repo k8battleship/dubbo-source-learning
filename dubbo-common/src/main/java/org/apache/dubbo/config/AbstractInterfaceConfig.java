@@ -48,6 +48,10 @@ import static org.apache.dubbo.common.constants.CommonConstants.TIMESTAMP_KEY;
  *
  * @export
  */
+
+/**
+ * 继承AbstractMethodConfig，抽象接口配置类
+ */
 public abstract class AbstractInterfaceConfig extends AbstractMethodConfig {
 
     private static final long serialVersionUID = -1559314110797223229L;
@@ -177,6 +181,11 @@ public abstract class AbstractInterfaceConfig extends AbstractMethodConfig {
     /**
      * Check whether the registry config is exists, and then conversion it to {@link RegistryConfig}
      */
+    /**
+     * 校验注册中心配置项配置
+     * 其实换句话说也是初始化RegistryConfig的配置属性
+     *
+     */
     public void checkRegistry() {
         convertRegistryIdsToRegistries();
 
@@ -188,6 +197,7 @@ public abstract class AbstractInterfaceConfig extends AbstractMethodConfig {
         }
     }
 
+    // 添加运行时公共参数
     public static void appendRuntimeParameters(Map<String, String> map) {
         map.put(DUBBO_VERSION_KEY, Version.getProtocolVersion());
         map.put(RELEASE_KEY, Version.getVersion());

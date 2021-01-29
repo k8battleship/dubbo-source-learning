@@ -30,16 +30,26 @@ import java.lang.annotation.Target;
 @Target({ElementType.METHOD})
 public @interface Parameter {
 
+    // 键名
     String key() default "";
 
+    // 是否为必须项
     boolean required() default false;
 
+    // 是否忽略
     boolean excluded() default false;
 
+    // 是否需要转义
     boolean escaped() default false;
 
+    // 是否为属性
     boolean attribute() default false;
 
+    // 是否拼接为属性
+    /**
+     *
+     *
+     */
     boolean append() default false;
 
     /**

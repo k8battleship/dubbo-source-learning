@@ -90,6 +90,11 @@ import static org.apache.dubbo.rpc.cluster.Constants.REFER_KEY;
  * Please avoid using this class for any new application,
  * use {@link ReferenceConfigBase} instead.
  */
+
+/**
+ * 服务消费者引用服务配置类
+ * @param <T>
+ */
 public class ReferenceConfig<T> extends ReferenceConfigBase<T> {
 
     public static final Logger logger = LoggerFactory.getLogger(ReferenceConfig.class);
@@ -197,16 +202,20 @@ public class ReferenceConfig<T> extends ReferenceConfigBase<T> {
         this.services = services;
     }
 
+    @Override
     public synchronized T get() {
+        // 已经销毁的不可获取
         if (destroyed) {
             throw new IllegalStateException("The invoker of ReferenceConfig(" + url + ") has already destroyed!");
         }
         if (ref == null) {
+            // 如果不存在引用将进行初始化
             init();
         }
         return ref;
     }
 
+    @Override
     public synchronized void destroy() {
         if (ref == null) {
             return;
@@ -227,16 +236,18 @@ public class ReferenceConfig<T> extends ReferenceConfigBase<T> {
         dispatch(new ReferenceConfigDestroyedEvent(this));
     }
 
+    // 初始化引用对象
     public synchronized void init() {
+        // 如果已经初始化，直接进行返回
         if (initialized) {
             return;
         }
-
+        // 如果不存在运行容器，将进行容器初始化
         if (bootstrap == null) {
             bootstrap = DubboBootstrap.getInstance();
             bootstrap.init();
         }
-
+        // 检查并更新订阅配置
         checkAndUpdateSubConfigs();
 
         checkStubAndLocal(interfaceClass);
@@ -246,6 +257,7 @@ public class ReferenceConfig<T> extends ReferenceConfigBase<T> {
         map.put(SIDE_KEY, CONSUMER_SIDE);
 
         ReferenceConfigBase.appendRuntimeParameters(map);
+        // 泛化接口的实现
         if (!ProtocolUtils.isGeneric(generic)) {
             String revision = Version.getVersion(interfaceClass, version);
             if (revision != null && revision.length() > 0) {
@@ -291,7 +303,7 @@ public class ReferenceConfig<T> extends ReferenceConfigBase<T> {
                 }
             }
         }
-
+        // 以系统变量(DUBBO_IP_TO_REGISTRY)作为服务注册地址
         String hostToRegistry = ConfigUtils.getSystemProperty(DUBBO_IP_TO_REGISTRY);
         if (StringUtils.isEmpty(hostToRegistry)) {
             hostToRegistry = NetUtils.getLocalHost();
@@ -311,10 +323,11 @@ public class ReferenceConfig<T> extends ReferenceConfigBase<T> {
         consumerModel.init(attributes);
 
         initialized = true;
-
+        // 检查调用是否可用
         checkInvokerAvailable();
 
         // dispatch a ReferenceConfigInitializedEvent since 2.7.4
+        // 传播 引用初始化完成 事件
         dispatch(new ReferenceConfigInitializedEvent(this, invoker));
     }
 

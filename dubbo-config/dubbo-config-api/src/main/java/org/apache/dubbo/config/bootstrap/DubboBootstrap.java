@@ -194,6 +194,7 @@ public class DubboBootstrap extends GenericEventListener {
         return instance;
     }
 
+    // 初始化Dubbo运行容器
     private DubboBootstrap() {
         configManager = ApplicationModel.getConfigManager();
         environment = ApplicationModel.getEnvironment();
@@ -512,10 +513,11 @@ public class DubboBootstrap extends GenericEventListener {
      * Initialize
      */
     public void initialize() {
+        // 通过CAS机制重置运行容器状态
         if (!initialized.compareAndSet(false, true)) {
             return;
         }
-
+        // 初始化拓展的框架
         ApplicationModel.initFrameworkExts();
 
         startConfigCenter();
@@ -526,23 +528,24 @@ public class DubboBootstrap extends GenericEventListener {
 
         // @since 2.7.8
         startMetadataCenter();
-
+        // 初始化元数据服务
         initMetadataService();
-
+        // 初始化元数据服务并进行暴露
         initMetadataServiceExports();
-
+        // 初始化事件监听器
         initEventListener();
 
         if (logger.isInfoEnabled()) {
             logger.info(NAME + " has been initialized!");
         }
     }
-
+    // 校验全局配置
     private void checkGlobalConfigs() {
         // check Application
         ConfigValidationUtils.validateApplicationConfig(getApplication());
 
         // check Metadata
+        // 检查元数据
         Collection<MetadataReportConfig> metadatas = configManager.getMetadataConfigs();
         if (CollectionUtils.isEmpty(metadatas)) {
             MetadataReportConfig metadataReportConfig = new MetadataReportConfig();
@@ -560,6 +563,7 @@ public class DubboBootstrap extends GenericEventListener {
         }
 
         // check Provider
+        // 检查服务提供方
         Collection<ProviderConfig> providers = configManager.getProviders();
         if (CollectionUtils.isEmpty(providers)) {
             configManager.getDefaultProvider().orElseGet(() -> {
@@ -573,6 +577,7 @@ public class DubboBootstrap extends GenericEventListener {
             ConfigValidationUtils.validateProviderConfig(providerConfig);
         }
         // check Consumer
+        // 校验服务消费方
         Collection<ConsumerConfig> consumers = configManager.getConsumers();
         if (CollectionUtils.isEmpty(consumers)) {
             configManager.getDefaultConsumer().orElseGet(() -> {
@@ -587,8 +592,10 @@ public class DubboBootstrap extends GenericEventListener {
         }
 
         // check Monitor
+        // 校验监控中心对象配置
         ConfigValidationUtils.validateMonitorConfig(getMonitor());
         // check Metrics
+        // 校验监控中心计量配置
         ConfigValidationUtils.validateMetricsConfig(getMetrics());
         // check Module
         ConfigValidationUtils.validateModuleConfig(getModule());
@@ -596,13 +603,15 @@ public class DubboBootstrap extends GenericEventListener {
         ConfigValidationUtils.validateSslConfig(getSsl());
     }
 
+    // 启动配置中心
     private void startConfigCenter() {
-
+        // 必要的情况下把注册中心作为配置中心
         useRegistryAsConfigCenterIfNecessary();
-
+        // 通过配置管理器获取配置中心对象
         Collection<ConfigCenterConfig> configCenters = configManager.getConfigCenters();
 
         // check Config Center
+        // 判断配置中心对象是否为空
         if (CollectionUtils.isEmpty(configCenters)) {
             ConfigCenterConfig configCenterConfig = new ConfigCenterConfig();
             configCenterConfig.refresh();
@@ -628,7 +637,7 @@ public class DubboBootstrap extends GenericEventListener {
     }
 
     private void startMetadataCenter() {
-
+        // 必要情况下将注册中心作为元数据中心
         useRegistryAsMetadataCenterIfNecessary();
 
         ApplicationConfig applicationConfig = getApplication();
@@ -665,7 +674,13 @@ public class DubboBootstrap extends GenericEventListener {
         if (CollectionUtils.isNotEmpty(configManager.getConfigCenters())) {
             return;
         }
-
+        // 初始化配置管理器配置
+        /**
+         * 1. 获取默认注册中心
+         * 2. 过滤出可以把注册中心作为配置中心的注册中心
+         * 3. 将注册中心对象转换成配置中心对象
+         * 4. 添加配置中心对象到配置管理器
+         */
         configManager
                 .getDefaultRegistries()
                 .stream()
@@ -821,9 +836,11 @@ public class DubboBootstrap extends GenericEventListener {
         return metadataAddressBuilder.toString();
     }
 
+    // 加载远程配置
     private void loadRemoteConfigs() {
         // registry ids to registry configs
         List<RegistryConfig> tmpRegistries = new ArrayList<>();
+        // 获取注册中心ID
         Set<String> registryIds = configManager.getRegistryIds();
         registryIds.forEach(id -> {
             if (tmpRegistries.stream().noneMatch(reg -> reg.getId().equals(id))) {
@@ -835,7 +852,7 @@ public class DubboBootstrap extends GenericEventListener {
                 }));
             }
         });
-
+        // 注册中心对象添加到配置管理器对象中
         configManager.addRegistries(tmpRegistries);
 
         // protocol ids to protocol configs
@@ -851,7 +868,7 @@ public class DubboBootstrap extends GenericEventListener {
                 }));
             }
         });
-
+        // RPC协议对象添加至配置管理器中
         configManager.addProtocols(tmpProtocols);
     }
 
